@@ -1,0 +1,14 @@
+docker run -d --name pihole -p 53:53/tcp -p 53:53/udp -p 80:80 -p 443:443 -e TZ="Europe/Dublin" -v ~/docker/DockerVol/pihole/etc-pihole/:/etc/pihole/ -v ~/docker/DockerVol/pihole/etc-dnsmasq.d/:/etc/dnsmasq.d/ --dns=127.0.0.1 --dns=8.8.8.8  --restart=unless-stopped  --hostname pi.hole -e VIRTUAL_HOST="pi.hole" -e PROXY_LOCATION="pi.hole" -e ServerIP="127.0.0.1" pihole/pihole:latest
+sudo docker run -d -p 9000:9000 --name=portainer --restart=always -v /var/run/docker.sock:/var/run/docker.sock -v portainer_data:/data portainer/portainer-ce:linux-arm
+docker run -d --name telegraf --restart=unless-stopped -v ~/docker/DockerVol/telegraf/:/etc/telegraf/:ro telegraf
+
+
+telegraf:
+    container_name: telegraf
+    image: telegraf
+    restart: unless-stopped
+    volumes:
+    - ./services/telegraf/telegraf.conf:/etc/telegraf/telegraf.conf:ro
+    depends_on:
+    - influxdb
+    - mosquitto
