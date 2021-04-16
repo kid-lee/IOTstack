@@ -12,3 +12,21 @@ telegraf:
     depends_on:
     - influxdb
     - mosquitto
+
+
+## when wifi dont start protperly 
+
+    The clean fixed I did, was to edit the dhcpcd.service and adding a docker dependencies to wait for docker.service to run before dhcpcd service
+
+it looks like
+
+sudo nano /lib/systemd/system/dhcpcd.service
+then change the [Unit] block as below (by dropping the Before=network.target
+
+[Unit]
+Description=dhcpcd on all interfaces
+Wants=network.target docker.service
+After=docker.service
+Share
+Improve this answer
+Follow
