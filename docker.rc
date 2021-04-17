@@ -2,6 +2,12 @@ docker run -d --name pihole -p 53:53/tcp -p 53:53/udp -p 80:80 -p 443:443 -e TZ=
 sudo docker run -d -p 9000:9000 --name=portainer --restart=always -v /var/run/docker.sock:/var/run/docker.sock -v portainer_data:/data portainer/portainer-ce:linux-arm
 docker run -d --name telegraf --restart=unless-stopped -v ~/docker/DockerVol/telegraf/:/etc/telegraf/:ro telegraf
 
+docker run -it -p 1880:1880 -v ~/docker/DockerVol/nodereddata:/data --name mynodered nodered/node-red
+
+docker run -p 1880:1880 -v node_red_data:/data --name nodered nodered/node-red:lates
+
+docker run -p 1880:1880 -v ~/docker/DockerVol/docker/DockerVol/node_red_data:/data --name nodered nodered/node-red:latest
+
 
 telegraf:
     container_name: telegraf
