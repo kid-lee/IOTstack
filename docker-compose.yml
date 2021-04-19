@@ -65,14 +65,15 @@ services:
     container_name: mosquitto
     image: eclipse-mosquitto
     restart: unless-stopped
-    user: "1883"
+   #user: "1883"
     ports:
     - "1883:1883"
     volumes:
     - ~/docker/DockerVol/mosquitto/data:/mosquitto/data
     - ~/docker/DockerVol/mosquitto/log:/mosquitto/log
+    - ~/docker/DockerVol/mosquitto/config:/mosquitto/config
     - ~/docker/DockerVol/mosquitto/pwfile:/mosquitto/pwfile
-    - ./services/mosquitto:/mosquitto/config:ro
+    
 
   # motioneye:
   #   image: "ccrisan/motioneye:master-armhf"
@@ -87,47 +88,45 @@ services:
   #   - ~/docker/DockerVol/motioneye/var_lib_motioneye:/var/lib/motioneye
 
 
-  # nodered:
-  #   container_name: nodered
-  #   build: ./services/nodered/.
-  #   restart: unless-stopped
-  #   user: "0"
-  #   privileged: true
-  #   environment:
-  #   - TZ=Etc/UTC
-  #   ports:
-  #   - "1880:1880"
-  #   volumes:
-  #   - ~/docker/DockerVol/nodered/data:/data
-  #   - /var/run/docker.sock:/var/run/docker.sock
-  #   - /var/run/dbus/system_bus_socket:/var/run/dbus/system_bus_socket
-  #   devices:
-  #   - "/dev/ttyAMA0:/dev/ttyAMA0"
-  #   - "/dev/vcio:/dev/vcio"
-  #   - "/dev/gpiomem:/dev/gpiomem"
-  #   networks:
-  #   - iotstack_nw
-  
-  pihole:
-    container_name: pihole
-    image: pihole/pihole:latest
-    ports:
-    - "8089:80/tcp"
-    - "53:53/tcp"
-    - "53:53/udp"
-    - "67:67/udp"
-    environment:
-    - WEBPASSWORD=IOtSt4ckP1Hol3
-    # - INTERFACE=eth0
-    volumes:
-    - ~/docker/DockerVol/pihole/etc-pihole/:/etc/pihole/
-    - ~/docker/DockerVol/pihole/etc-dnsmasq.d/:/etc/dnsmasq.d/
-    dns:
-    - 127.0.0.1
-    - 1.1.1.1
-    # cap_add:
-    # - NET_ADMIN
+  nodered:
+    container_name: nodered
+    image: nodered/node-red:latest
     restart: unless-stopped
+    user: "0"
+    privileged: true
+    environment:
+    - TZ=Etc/UTC
+    ports:
+    - "1880:1880"
+    volumes:
+    - ~/docker/DockerVol/nodered/data:/data
+    - /var/run/docker.sock:/var/run/docker.sock
+    - /var/run/dbus/system_bus_socket:/var/run/dbus/system_bus_socket
+    devices:
+    - "/dev/ttyAMA0:/dev/ttyAMA0"
+    - "/dev/gpiomem:/dev/gpiomem"
+    network_mode: host
+  
+  # pihole:
+  #   container_name: pihole
+  #   image: pihole/pihole:latest
+  #   ports:
+  #   - "8089:80/tcp"
+  #   - "53:53/tcp"
+  #   - "53:53/udp"
+  #   - "67:67/udp"
+  #   environment:
+  #   - WEBPASSWORD=IOtSt4ckP1Hol3
+  #   # - INTERFACE=eth0
+  #   volumes:
+  #   - ~/docker/DockerVol/pihole/etc-pihole/:/etc/pihole/
+  #   - ~/docker/DockerVol/pihole/etc-dnsmasq.d/:/etc/dnsmasq.d/
+  #   dns:
+  #   - 127.0.0.1
+  #   - 1.1.1.1
+  #   cap_add:
+  #   - NET_ADMIN
+  #   restart: unless-stopped
 
 
 # Recommended but not required (DHCP needs NET_ADMIN)
@@ -204,7 +203,7 @@ services:
     image: telegraf
     restart: unless-stopped
     volumes:
-    - ./services/telegraf/:/etc/telegraf/:ro
+    - ~/docker/DockerVol/telegraf/:/etc/telegraf
     depends_on:
     - influxdb
     - mosquitto
@@ -255,29 +254,30 @@ services:
   #   restart: unless-stopped
   #   networks:
   #   - iotstack_nw
-  # wireguard:
-  #   image: linuxserver/wireguard
-  #   container_name: wireguard
-  #   cap_add:
-  #   - NET_ADMIN
-  #   - SYS_MODULE
-  #   environment:
-  #   - PUID=1000
-  #   - PGID=1000
-  #   - TZ=Europe/Dublin
-  #   - SERVERURL=blarblar.duckdns.org
-  #   - SERVERPORT=51820
-  #   - PEERS=1
-  #   - PEERDNS=auto
-  #   - INTERNAL_SUBNET=100.64.0.0/24
-  #   volumes:
-  #   - ./services/wireguard/config:/config
-  #   - /lib/modules:/lib/modules
-  #   ports:
-  #   - "51820:51820/udp"
-  #   sysctls:
-  #   - net.ipv4.conf.all.src_valid_mark=1
-  #   restart: unless-stopped
+  wireguard:
+    image: linuxserver/wireguard
+    container_name: wireguard
+    cap_add:
+    - NET_ADMIN
+    - SYS_MODULE
+    environment:
+    - PUID=1000
+    - PGID=1000
+    - TZ=Europe/Dublin
+    - SERVERURL=blarblar.duckdns.org
+    - SERVERPORT=51820
+    - PEERS=5
+    - PEERDNS=auto
+    - INTERNAL_SUBNET=192.168.8.0/24\|QA  122
+    volumes:
+    - ~/docker/DockerVol/wireguard/config:/config
+    - ~/docker/DockerVol/wireguard/lib/modules:/lib/modules
+    ports:
+    - "51820:51820/udp"
+    - "8000:8000/udp"
+    sysctls:
+    - net.ipv4.conf.all.src_valid_mark=1
+    restart: unless-stopped
   # timescaledb:
   #   container_name: timescaledb
   #   image: timescale/timescaledb:latest-pg12
